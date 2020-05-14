@@ -121,7 +121,7 @@ public class CamelConfiguration extends RouteBuilder {
      *  Logging
      */
     from("direct:logging")
-        .log(LoggingLevel.INFO, log, "HL7 Admissions Message: [${body}]")
+        .log(LoggingLevel.INFO, log, "Transaction: [${body}]")
     ;
       //https://camel.apache.org/components/2.x/languages/simple-language.html
 	  // ADT
@@ -204,9 +204,8 @@ public class CamelConfiguration extends RouteBuilder {
             // iDAAS DataHub Processing
             .wireTap("direct:auditing")
             .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
-            //.to("netty-http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true?throwExceptionOnFailure=false?authMethod=Basic?authUsername=fhiruser?authPassword=FHIRDeveloper123")
-            //.to("http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true?authMethod=Basic?authUsername=fhiruser?authPassword=FHIRDeveloper123")
-            .to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
+            //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
+            .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
             //Process Response
             .setProperty("processingtype").constant("data")
             .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
@@ -218,7 +217,7 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("internalMsgID").simple("${id}")
             .setProperty("processname").constant("Response")
             .setProperty("auditdetails").constant("Condition response message received")
-            .wireTap("direct:auditing")
+            .wireTap("direct:logging")
     ;
 
     /*
