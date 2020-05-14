@@ -16,6 +16,7 @@
  */
 package test;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
@@ -182,7 +183,11 @@ public class CamelConfiguration extends RouteBuilder {
     // Authentication with http
     //https://sadique.io/blog/2015/12/16/authentication-for-apache-camel-http-components/
 
-    from("servlet://condition?servletName=CamelServlet")
+    // https://camel.apache.org/components/2.x/netty4-http-component.html
+    // https://camel.apache.org/components/latest/jetty-component.html
+
+    from("servlet://condition?exchangePattern=InOut")
+            //from("servlet://condition?servletName=CamelServlet")
             .routeId("FHIRCondition")
             // set Auditing Properties
             .convertBodyTo(String.class)
@@ -198,11 +203,22 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("auditdetails").constant("Condition message received")
             // iDAAS DataHub Processing
             .wireTap("direct:auditing")
-            // Invoke External FHIR Server
-            //.to("https://localhost:9443/fhir-server/api/v4/Person")
-            .to("http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true?authMethod=Basic?authUsername=fhiradmin?authPassword=fhiradmin123")
-
-    //Process Response
+            .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
+            //.to("netty-http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true?throwExceptionOnFailure=false?authMethod=Basic?authUsername=fhiruser?authPassword=FHIRDeveloper123")
+            //.to("http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true?authMethod=Basic?authUsername=fhiruser?authPassword=FHIRDeveloper123")
+            .to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
+            //Process Response
+            .setProperty("processingtype").constant("data")
+            .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
+            .setProperty("industrystd").constant("FHIR")
+            .setProperty("messagetrigger").constant("Condition")
+            .setProperty("componentname").simple("${routeId}")
+            .setProperty("camelID").simple("${camelId}")
+            .setProperty("exchangeID").simple("${exchangeId}")
+            .setProperty("internalMsgID").simple("${id}")
+            .setProperty("processname").constant("Response")
+            .setProperty("auditdetails").constant("Condition response message received")
+            .wireTap("direct:auditing")
     ;
 
     /*
