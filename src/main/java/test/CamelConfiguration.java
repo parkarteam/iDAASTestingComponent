@@ -114,6 +114,7 @@ public class CamelConfiguration extends RouteBuilder {
         .setHeader("camelID").exchangeProperty("camelID")
         .setHeader("exchangeID").exchangeProperty("exchangeID")
         .setHeader("internalMsgID").exchangeProperty("internalMsgID")
+        .setHeader("bodyData").exchangeProperty("bodyData")
         .convertBodyTo(String.class).to("kafka://localhost:9092?topic=opsMgmt_PlatformTransactions&brokers=localhost:9092")
         //.to("kafka:opsMgmt_PlatformTransactions?brokers=localhost:9092")
     ;
@@ -139,6 +140,7 @@ public class CamelConfiguration extends RouteBuilder {
           //.setBody(simple("${body}"))
           //.convertBodyTo(byte[].class, "iso-8859-1")
           .convertBodyTo(String.class)
+          .setProperty("bodyData").simple("${body}")
           .setProperty("processingtype").constant("data")
           .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
           .setProperty("industrystd").constant("HL7")
@@ -158,39 +160,16 @@ public class CamelConfiguration extends RouteBuilder {
           // This would enable persistence of the ACK
     ;
 
-    /*from("servlet://localhost/patient")
-            .routeId("FHIRPatient")
-            // set Auditing Properties
-            .convertBodyTo(String.class)
-            .setProperty("processingtype").constant("data")
-            .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
-            .setProperty("industrystd").constant("FHIR")
-            .setProperty("messagetrigger").constant("Patient")
-            .setProperty("componentname").simple("${routeId}")
-            .setProperty("camelID").simple("${camelId}")
-            .setProperty("exchangeID").simple("${exchangeId}")
-            .setProperty("internalMsgID").simple("${id}")
-            .setProperty("processname").constant("Input")
-            .setProperty("auditdetails").constant("Patient message received")
-            // iDAAS DataHub Processing
-            .wireTap("direct:auditing")
-            // Send To Topic
-            .to("kafka:FHIRSvr_Observation?brokers=localhost:9092")
-            // Invoke External FHIR Server
-            .to("https://localhost:9443/fhir-server/api/v4/Patient")
-            //Process Response
-    ;*/
     // Authentication with http
-    //https://sadique.io/blog/2015/12/16/authentication-for-apache-camel-http-components/
-
+    // https://sadique.io/blog/2015/12/16/authentication-for-apache-camel-http-components/
     // https://camel.apache.org/components/2.x/netty4-http-component.html
     // https://camel.apache.org/components/latest/jetty-component.html
-
     from("servlet://condition?exchangePattern=InOut")
             //from("servlet://condition?servletName=CamelServlet")
             .routeId("FHIRCondition")
             // set Auditing Properties
             .convertBodyTo(String.class)
+            .setProperty("bodyData").simple("${body}")
             .setProperty("processingtype").constant("data")
             .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
             .setProperty("industrystd").constant("FHIR")
@@ -206,7 +185,9 @@ public class CamelConfiguration extends RouteBuilder {
             .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
             //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
             .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
+            //.setBody(simple("${body}"))
             //Process Response
+            .setProperty("bodyData").simple("${body}")
             .setProperty("processingtype").constant("data")
             .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
             .setProperty("industrystd").constant("FHIR")
@@ -217,7 +198,7 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("internalMsgID").simple("${id}")
             .setProperty("processname").constant("Response")
             .setProperty("auditdetails").constant("Condition response message received")
-            .wireTap("direct:logging")
+            .wireTap("direct:auditing")
     ;
 
     /*
