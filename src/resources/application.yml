@@ -1,0 +1,77 @@
+# Servlet Container & Health Setup
+server:
+  address: 0.0.0.0
+management:
+  address: 0.0.0.0
+  port: 8081
+endpoints:
+  enabled: false
+  health:
+    enabled: true
+
+# AMQPHub
+amqphub:
+  amqp10jms:
+    pool:
+      enabled: true
+    remote-url: amqp://0.0.0.0:61616
+    #username: admin
+    #password: admin
+
+# Camel Spring Boot
+camel:
+  springboot:
+    name: idaas-ingest
+
+# Logging
+logging:
+  config: classpath:logback.xml
+  level:
+    com.redhat.idaas: INFO
+
+#  https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-application-property-files
+#  Application Properties Example
+# environments:
+#   dev:
+#     url: https://dev.example.com
+#     name: Developer Setup
+# These settings equate to
+# environments.dev.url=https://dev.example.com
+# environments.dev.name=Developer Setup
+
+#Updated Servlet endpoint
+# localhost://8080
+# default is /camel/*
+camel.component.servlet.mapping.context-path: /idaas/*
+
+# MLLP Ports
+mllp-settings:
+  ADTPort:
+  OrdersPort:
+  PharmacyPort:
+  ResultsPort:
+  SchedulePort:
+  MasterDocumentPort:
+  MasterFilePort:
+  VaccinationPort:
+
+# Kafka
+kafka-settings:
+  hostvalue: 0.0.0.0
+  portnumber: 9032
+
+# FHIR Server
+FHIRServerSettings:
+  CodeSystemURL:
+  DiagnosticResultURL:
+  EncounterURL:
+  ImmunizationURL:
+  MedicationRequestURL:
+  MedicationStatementURL:
+  ObservationURL:
+  OrderURL:
+  PatientURL:
+  PersonURL:
+  ProcedureURL:
+  ScheduleURL:
+
