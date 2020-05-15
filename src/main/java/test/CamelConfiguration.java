@@ -184,7 +184,7 @@ public class CamelConfiguration extends RouteBuilder {
             .wireTap("direct:auditing")
             .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
             //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
-            .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
+            .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
             //.setBody(simple("${body}"))
             //Process Response
             .setProperty("bodyData").simple("${body}")
