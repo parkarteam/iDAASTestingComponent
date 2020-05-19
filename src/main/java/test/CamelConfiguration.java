@@ -100,7 +100,7 @@ public class CamelConfiguration extends RouteBuilder {
     // String class and kafka
     // https://www.codota.com/code/java/methods/org.apache.camel.model.RouteDefinition/convertBodyTo
     from("direct:auditing")
-        .setHeader("messageprocesseddate").simple("${date:now:yyyy-MM-dd}")
+         .setHeader("messageprocesseddate").simple("${date:now:yyyy-MM-dd}")
         .setHeader("messageprocessedtime").simple("${date:now:HH:mm:ss:SSS}")
         .setHeader("processingtype").exchangeProperty("processingtype")
         .setHeader("industrystd").exchangeProperty("industrystd")
@@ -126,8 +126,6 @@ public class CamelConfiguration extends RouteBuilder {
     //from("file:src/data-in?delete=true?noop=true")
           .routeId("hl7Admissions")
            // Added
-          //.setBody(simple("${body}"))
-          //.convertBodyTo(byte[].class, "iso-8859-1")
           .convertBodyTo(String.class)
           .setProperty("bodyData").simple("${body}")
           .setProperty("processingtype").constant("data")
@@ -143,7 +141,7 @@ public class CamelConfiguration extends RouteBuilder {
           // iDAAS DataHub Processing
           .wireTap("direct:auditing")
           // Send to Topic
-          .convertBodyTo(String.class).to("kafka://localhost:9092?topic=MCTN_MMS_ADT&brokers=localhost:9092")
+          .convertBodyTo(String.class).to("kafka://localhost:9092?topic=MCTN_ADT&brokers=localhost:9092")
           //Response to HL7 Message Sent Built by platform
           .transform(HL7.ack())
           // This would enable persistence of the ACK
@@ -184,7 +182,7 @@ public class CamelConfiguration extends RouteBuilder {
         .wireTap("direct:auditing")
         .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
         //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
-        .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
+        //.to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
         //Process Response
         .setProperty("bodyData").simple("${body}")
         .setProperty("processingtype").constant("data")
