@@ -100,9 +100,6 @@ public class CamelConfiguration extends RouteBuilder {
     // String class and kafka
     // https://www.codota.com/code/java/methods/org.apache.camel.model.RouteDefinition/convertBodyTo
     from("direct:auditing")
-        // look at simple for expressions of exchange properties
-        // .setHeader("source").simple("Value")
-        //.setHeader("source").simple("{$body}")
         .setHeader("messageprocesseddate").simple("${date:now:yyyy-MM-dd}")
         .setHeader("messageprocessedtime").simple("${date:now:HH:mm:ss:SSS}")
         .setHeader("processingtype").exchangeProperty("processingtype")
@@ -116,7 +113,6 @@ public class CamelConfiguration extends RouteBuilder {
         .setHeader("internalMsgID").exchangeProperty("internalMsgID")
         .setHeader("bodyData").exchangeProperty("bodyData")
         .convertBodyTo(String.class).to("kafka://localhost:9092?topic=opsMgmt_PlatformTransactions&brokers=localhost:9092")
-        //.to("kafka:opsMgmt_PlatformTransactions?brokers=localhost:9092")
     ;
     /*
      *  Logging
@@ -124,15 +120,8 @@ public class CamelConfiguration extends RouteBuilder {
     from("direct:logging")
         .log(LoggingLevel.INFO, log, "Transaction: [${body}]")
     ;
-      //https://camel.apache.org/components/2.x/languages/simple-language.html
-	  // ADT
-	  // from("netty4:tcp://0.0.0.0:10001?sync=true&decoder=#hl7Decoder&encoder=#hl7Encoder")
-      // Issues with converting from JSON in Kafka]
-      // https://stackoverflow.com/questions/42101697/camel-kafka-serialization-error
-      // tried this link
-      //  https://camel.apache.org/manual/latest/json.html
 
-    // https://camel.apache.org/components/latest/file-component.html
+    // MLLP Test Receiver
     from("netty4:tcp://0.0.0.0:10001?sync=true&decoder=#hl7Decoder&encoder=#hl7Encoder")
     //from("file:src/data-in?delete=true?noop=true")
           .routeId("hl7Admissions")
@@ -154,58 +143,64 @@ public class CamelConfiguration extends RouteBuilder {
           // iDAAS DataHub Processing
           .wireTap("direct:auditing")
           // Send to Topic
-          //.to("kafka:MCTN_MMS_ADT?brokers=localhost:9092")
+          .convertBodyTo(String.class).to("kafka://localhost:9092?topic=MCTN_MMS_ADT&brokers=localhost:9092")
           //Response to HL7 Message Sent Built by platform
-          //.transform(HL7.ack())
+          .transform(HL7.ack())
           // This would enable persistence of the ACK
-    ;
+          .convertBodyTo(String.class)
+          .setProperty("bodyData").simple("${body}")
+          .setProperty("processingtype").constant("data")
+          .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
+          .setProperty("industrystd").constant("HL7")
+          .setProperty("messagetrigger").constant("ADT")
+          .setProperty("componentname").simple("${routeId}")
+          .setProperty("camelID").simple("${camelId}")
+          .setProperty("exchangeID").simple("${exchangeId}")
+          .setProperty("internalMsgID").simple("${id}")
+          .setProperty("processname").constant("Input")
+          .setProperty("auditdetails").constant("ACK Processed")
+          // iDAAS DataHub Processing
+          .wireTap("direct:auditing")
+   ;
 
-    // Authentication with http
-    // https://sadique.io/blog/2015/12/16/authentication-for-apache-camel-http-components/
-    // https://camel.apache.org/components/2.x/netty4-http-component.html
-    // https://camel.apache.org/components/latest/jetty-component.html
+    // FHIR
     from("servlet://condition?exchangePattern=InOut")
-            //from("servlet://condition?servletName=CamelServlet")
-            .routeId("FHIRCondition")
-            // set Auditing Properties
-            .convertBodyTo(String.class)
-            .setProperty("bodyData").simple("${body}")
-            .setProperty("processingtype").constant("data")
-            .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
-            .setProperty("industrystd").constant("FHIR")
-            .setProperty("messagetrigger").constant("Condition")
-            .setProperty("componentname").simple("${routeId}")
-            .setProperty("camelID").simple("${camelId}")
-            .setProperty("exchangeID").simple("${exchangeId}")
-            .setProperty("internalMsgID").simple("${id}")
-            .setProperty("processname").constant("Input")
-            .setProperty("auditdetails").constant("Condition message received")
-            // iDAAS DataHub Processing
-            .wireTap("direct:auditing")
-            .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
-            //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
-            .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
-            //.setBody(simple("${body}"))
-            //Process Response
-            .setProperty("bodyData").simple("${body}")
-            .setProperty("processingtype").constant("data")
-            .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
-            .setProperty("industrystd").constant("FHIR")
-            .setProperty("messagetrigger").constant("Condition")
-            .setProperty("componentname").simple("${routeId}")
-            .setProperty("camelID").simple("${camelId}")
-            .setProperty("exchangeID").simple("${exchangeId}")
-            .setProperty("internalMsgID").simple("${id}")
-            .setProperty("processname").constant("Response")
-            .setProperty("auditdetails").constant("Condition response message received")
-            .wireTap("direct:auditing")
+        //from("servlet://condition?servletName=CamelServlet")
+        .routeId("FHIRCondition")
+        // set Auditing Properties
+        .convertBodyTo(String.class)
+        .setProperty("bodyData").simple("${body}")
+        .setProperty("processingtype").constant("data")
+        .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
+        .setProperty("industrystd").constant("FHIR")
+        .setProperty("messagetrigger").constant("Condition")
+        .setProperty("componentname").simple("${routeId}")
+        .setProperty("camelID").simple("${camelId}")
+        .setProperty("exchangeID").simple("${exchangeId}")
+        .setProperty("internalMsgID").simple("${id}")
+        .setProperty("processname").constant("Input")
+        .setProperty("auditdetails").constant("Condition message received")
+        // iDAAS DataHub Processing
+        .wireTap("direct:auditing")
+        .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
+        //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
+        .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
+        //Process Response
+        .setProperty("bodyData").simple("${body}")
+        .setProperty("processingtype").constant("data")
+        .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
+        .setProperty("industrystd").constant("FHIR")
+        .setProperty("messagetrigger").constant("Condition")
+        .setProperty("componentname").simple("${routeId}")
+        .setProperty("camelID").simple("${camelId}")
+        .setProperty("exchangeID").simple("${exchangeId}")
+        .setProperty("internalMsgID").simple("${id}")
+        .setProperty("processname").constant("Response")
+        .setProperty("auditdetails").constant("Condition response message received")
+        .wireTap("direct:auditing")
     ;
 
     /*
-     * Tweak to Kafka uri
-     * https://stackoverflow.com/questions/47866344/apache-kafka-apache-camel-integration-poc-issue-java-lang-nullpointerexcept/48253066
-     *
-     */
     from("kafka://localhost:9092?topic=opsMgmt_PlatformTransactions&brokers=localhost:9092")
         .routeId("audit")
          .log("Message received from Kafka : ${body}")
@@ -213,5 +208,6 @@ public class CamelConfiguration extends RouteBuilder {
          .log("with the offset ${headers[kafka.OFFSET]}")
          .log("with the key ${headers[kafka.HEADERS]}")
     ;
+    */
   }
 }
