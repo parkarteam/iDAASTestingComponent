@@ -23,3 +23,9 @@ bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-fac
 ## Enterprise by Message Trigger
 ## Application: MMS
 bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic ENT_ADT &
+## FHIR
+bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic FHIRSvr_Condition &
+## FHIR
+## Ent.
+bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic Ent_FHIRSvr_Condition &
+
