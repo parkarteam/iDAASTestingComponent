@@ -141,7 +141,7 @@ public class CamelConfiguration extends RouteBuilder {
           // iDAAS DataHub Processing
           .wireTap("direct:auditing")
           // Send to Topic
-          .convertBodyTo(String.class).to("kafka://localhost:9092?topic=MCTN_ADT&brokers=localhost:9092")
+          .convertBodyTo(String.class).to("kafka://localhost:9092?topic=MCTN_MMS_ADT&brokers=localhost:9092")
           //Response to HL7 Message Sent Built by platform
           .transform(HL7.ack())
           // This would enable persistence of the ACK
@@ -181,23 +181,22 @@ public class CamelConfiguration extends RouteBuilder {
         // iDAAS DataHub Processing
         .wireTap("direct:auditing")
         // Send to Topic
-        .convertBodyTo(String.class).to("kafka://localhost:9092?topic=MCTN_ADT&brokers=localhost:9092")
-        //.setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
-        //.to("http://localhost:8090/fhir-server/api/v4/Condition/?bridgeEndpoint=true")
-        //.to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
+        .convertBodyTo(String.class).to("kafka://localhost:9092?topic=FHIRSvr_Condition&brokers=localhost:9092")
+        .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
+        .to("jetty:http://localhost:8090/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
         //Process Response
-        //.setProperty("bodyData").simple("${body}")
-        //.setProperty("processingtype").constant("data")
-        //.setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
-        //.setProperty("industrystd").constant("FHIR")
-        //.setProperty("messagetrigger").constant("Condition")
-        //.setProperty("componentname").simple("${routeId}")
-        //.setProperty("camelID").simple("${camelId}")
-        //.setProperty("exchangeID").simple("${exchangeId}")
-        //.setProperty("internalMsgID").simple("${id}")
-        //.setProperty("processname").constant("Response")
-        //.setProperty("auditdetails").constant("Condition response message received")
-        //.wireTap("direct:auditing")
+        .setProperty("bodyData").simple("${body}")
+        .setProperty("processingtype").constant("data")
+        .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
+        .setProperty("industrystd").constant("FHIR")
+        .setProperty("messagetrigger").constant("Condition")
+        .setProperty("componentname").simple("${routeId}")
+        .setProperty("camelID").simple("${camelId}")
+        .setProperty("exchangeID").simple("${exchangeId}")
+        .setProperty("internalMsgID").simple("${id}")
+        .setProperty("processname").constant("Response")
+        .setProperty("auditdetails").constant("Condition response message received")
+        .wireTap("direct:auditing")
     ;
 
    /*
@@ -206,7 +205,7 @@ public class CamelConfiguration extends RouteBuilder {
     *   HL7
     */
 
-    from("kafka: MCTN_MMS_ADT?brokers=localhost:9092")
+    from("kafka://localhost:9092?topic=MCTN_MMS_ADT&brokers=localhost:9092")
             .routeId("ADT-MiddleTier")
             // Auditing
             .setProperty("processingtype").constant("data")
@@ -248,7 +247,7 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("auditdetails").constant("ADT to Enterprise By Sending App By Data Type middle tier")
             .wireTap("direct:auditing")
             // Enterprise Message By Type
-            .convertBodyTo(String.class).to("kafka://localhost:9092?topic=Ent_ADT&brokers=localhost:9092")
+            .convertBodyTo(String.class).to("kafka://localhost:9092?topic=ENT_ADT&brokers=localhost:9092")
     ;
     /*
      *  HCDD-EIP
