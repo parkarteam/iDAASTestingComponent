@@ -1,0 +1,4 @@
+commonLabels:
+  app: idaas-app
+bases:
+- ./idaas-build
