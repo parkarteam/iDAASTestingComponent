@@ -112,7 +112,7 @@ public class CamelConfiguration extends RouteBuilder {
         .setHeader("exchangeID").exchangeProperty("exchangeID")
         .setHeader("internalMsgID").exchangeProperty("internalMsgID")
         .setHeader("bodyData").exchangeProperty("bodyData")
-        .convertBodyTo(String.class).to("kafka://kafka-oss-cp-kafka-headless:9092?topic=opsMgmt_PlatformTransactions&brokers=kafka-oss-cp-kafka-headless:9092")
+        .convertBodyTo(String.class).to("kafka://idaas-cluster-kafka-bootstrap:9092?topic=opsMgmt_PlatformTransactions&brokers=idaas-cluster-kafka-bootstrap:9092")
     ;
     /*
      *  Logging
@@ -141,7 +141,7 @@ public class CamelConfiguration extends RouteBuilder {
           // iDAAS DataHub Processing
           .wireTap("direct:auditing")
           // Send to Topic
-          .convertBodyTo(String.class).to("kafka://kafka-oss-cp-kafka-headless:9092?topic=mctn-mms-adt&brokers=kafka-oss-cp-kafka-headless:9092")
+          .convertBodyTo(String.class).to("kafka://idaas-cluster-kafka-bootstrap:9092?topic=mctn-mms-adt&brokers=idaas-cluster-kafka-bootstrap:9092")
           //Response to HL7 Message Sent Built by platform
           .transform(HL7.ack())
           // This would enable persistence of the ACK
@@ -181,7 +181,7 @@ public class CamelConfiguration extends RouteBuilder {
         // iDAAS DataHub Processing
         .wireTap("direct:auditing")
         // Send to Topic
-        .convertBodyTo(String.class).to("kafka://kafka-oss-cp-kafka-headless:9092?topic=fhirsvr-condition&brokers=kafka-oss-cp-kafka-headless:9092")
+        .convertBodyTo(String.class).to("kafka://idaas-cluster-kafka-bootstrap:9092?topic=fhirsvr-condition&brokers=idaas-cluster-kafka-bootstrap:9092")
         .setHeader(Exchange.CONTENT_TYPE,constant("application/json"))
         .to("jetty:http://ibm-fhir-server.13.67.138.157.nip.io/fhir-server/api/v4/Condition?bridgeEndpoint=true&exchangePattern=InOut")
         //Process Response
@@ -205,7 +205,7 @@ public class CamelConfiguration extends RouteBuilder {
     *   HL7
     */
 
-    from("kafka://kafka-oss-cp-kafka-headless:9092?topic=mctn-mms-adt&brokers=kafka-oss-cp-kafka-headless:9092")
+    from("kafka://idaas-cluster-kafka-bootstrap:9092?topic=mctn-mms-adt&brokers=idaas-cluster-kafka-bootstrap:9092")
             .routeId("ADT-MiddleTier")
             // Auditing
             .setProperty("processingtype").constant("data")
@@ -217,7 +217,7 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("auditdetails").constant("ADT to Enterprise By Sending App By Data Type middle tier")
             .wireTap("direct:auditing")
             // Enterprise Message By Sending App By Type
-            .to("kafka:MMS_ADT?brokers=kafka-oss-cp-kafka-headless:9092")
+            .to("kafka:MMS_ADT?brokers=idaas-cluster-kafka-bootstrap:9092")
             // Auditing
             .setProperty("processingtype").constant("data")
             .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
@@ -232,7 +232,7 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("auditdetails").constant("ADT to Facility By Sending App By Data Type middle tier")
             .wireTap("direct:auditing")
             // Facility By Type
-            .convertBodyTo(String.class).to("kafka://kafka-oss-cp-kafka-headless:9092?topic=mctn-adt&brokers=kafka-oss-cp-kafka-headless:9092")
+            .convertBodyTo(String.class).to("kafka://idaas-cluster-kafka-bootstrap:9092?topic=mctn-adt&brokers=idaas-cluster-kafka-bootstrap:9092")
             // Auditing
             .setProperty("processingtype").constant("data")
             .setProperty("appname").constant("iDAAS-ConnectClinical-IndustryStd")
@@ -247,14 +247,14 @@ public class CamelConfiguration extends RouteBuilder {
             .setProperty("auditdetails").constant("ADT to Enterprise By Sending App By Data Type middle tier")
             .wireTap("direct:auditing")
             // Enterprise Message By Type
-            .convertBodyTo(String.class).to("kafka://kafka-oss-cp-kafka-headless:9092?topic=ent-adt&brokers=kafka-oss-cp-kafka-headless:9092")
+            .convertBodyTo(String.class).to("kafka://idaas-cluster-kafka-bootstrap:9092?topic=ent-adt&brokers=idaas-cluster-kafka-bootstrap:9092")
     ;
     /*
      *  HCDD-EIP
      *  FHIR
      *
      */
-    from("kafka:kafka-oss-cp-kafka-headless:9092?topic=fhirsvr-condition&brokers=kafka-oss-cp-kafka-headless:9092")
+    from("kafka:idaas-cluster-kafka-bootstrap:9092?topic=fhirsvr-condition&brokers=idaas-cluster-kafka-bootstrap:9092")
         .routeId("Condition-MiddleTier")
         // Auditing
         .setProperty("processingtype").constant("data")
@@ -270,7 +270,7 @@ public class CamelConfiguration extends RouteBuilder {
         .setProperty("auditdetails").constant("Condition to Enterprise By Data Type middle tier")
         .wireTap("direct:auditing")
         // Enterprise Message By Type
-        .to("kafka:kafka-oss-cp-kafka-headless:9092?topic=ent-fhirsvr-condition&brokers=kafka-oss-cp-kafka-headless:9092")
+        .to("kafka:idaas-cluster-kafka-bootstrap:9092?topic=ent-fhirsvr-condition&brokers=idaas-cluster-kafka-bootstrap:9092")
     ;
   }
 }
